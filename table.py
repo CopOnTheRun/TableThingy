@@ -134,5 +134,5 @@ class Table:
             string += f"{row}"
             h_lines = ["-"*width for width in self.col_widths]
             string += "|".join(h_lines) + "\n"
-        return string
+        return string.removesuffix("\n")
 
