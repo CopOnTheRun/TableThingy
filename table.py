@@ -87,30 +87,31 @@ class Cell:
             string += h_pad(content, self.width, self.fmt.h_align, self.fmt.fill)
         return string
 
-class RowFormat:
-    def __init__(self, line: Iterable[str] = ("│")):
-        self.divider = cycle(line)
+class Divider:
+    def __init__(self, chars: Iterable[str], positions: Iterable[int]):
+        self.chars = cycle(chars)
+        self.positions = positions
+
 
 @dataclass
 class Row:
     cells: list[Cell]
-    fmt: RowFormat = RowFormat()
+    divider: Divider
 
     def __str__(self) -> str:
         string = ""
         iters = [line_iter(cell) for cell in self.cells]
-
         for _ in range(self.cells[0].height):
-            divider = next(self.fmt.divider)
-            string += divider.join([next(cell_line) for cell_line in iters]) + "\n"
-
+            chars = next(self.divider.chars)
+            string += chars.join(next(cell_line) for cell_line in iters) + "\n"
         return string
 
 class TableFormat:
-    def __init__(self, divider: Iterable[str] = "─", joint:str = "┼", div_locs: Iterable[int] = (-1,)):
-        self.divider = cycle(divider)
+    def __init__(self, h_div: Divider = Divider("─", range(100)),
+            v_div: Divider = Divider("│", range(100)), joint: str = "┼"):
+        self.h_div = h_div
+        self.v_div = v_div
         self.joint = joint
-        self.div_locs = div_locs
 
 @dataclass
 class Table:
@@ -132,15 +133,15 @@ class Table:
             cell_list: list[Cell] = []
             for width, datum in zip_longest(self.col_widths, row, fillvalue=""):
                 cell_list.append(Cell(Content(datum),height,width))
-            rows.append(Row(cell_list))
+            rows.append(Row(cell_list, self.tab_fmt.v_div))
         return rows
 
     def __str__(self) -> str:
         string = ""
         for i, row in enumerate(self.rows):
             string += f"{row}"
-            if i in self.tab_fmt.div_locs:
-                divider = next(self.tab_fmt.divider)
+            if i in self.tab_fmt.h_div.positions:
+                divider = next(self.tab_fmt.h_div.chars)
                 h_lines = [divider*width for width in self.col_widths]
                 string += self.tab_fmt.joint.join(h_lines) + "\n"
         return string.removesuffix("\n")
