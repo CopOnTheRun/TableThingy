@@ -88,7 +88,7 @@ class Cell:
         return string
 
 class RowFormat:
-    def __init__(self, line: Iterable[str] = ("|")):
+    def __init__(self, line: Iterable[str] = ("│")):
         self.divider = cycle(line)
 
 @dataclass
@@ -106,9 +106,16 @@ class Row:
 
         return string
 
+class TableFormat:
+    def __init__(self, divider: Iterable[str] = "─", joint:str = "┼", div_locs: Iterable[int] = (-1,)):
+        self.divider = cycle(divider)
+        self.joint = joint
+        self.div_locs = div_locs
+
 @dataclass
 class Table:
     data: list[list[Any]]
+    tab_fmt: TableFormat = TableFormat()
 
     @property
     def row_heights(self) -> list[int]:
@@ -130,9 +137,11 @@ class Table:
 
     def __str__(self) -> str:
         string = ""
-        for row in self.rows:
+        for i, row in enumerate(self.rows):
             string += f"{row}"
-            h_lines = ["-"*width for width in self.col_widths]
-            string += "|".join(h_lines) + "\n"
+            if i in self.tab_fmt.div_locs:
+                divider = next(self.tab_fmt.divider)
+                h_lines = [divider*width for width in self.col_widths]
+                string += self.tab_fmt.joint.join(h_lines) + "\n"
         return string.removesuffix("\n")
 
