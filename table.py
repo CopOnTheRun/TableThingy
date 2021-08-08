@@ -20,6 +20,15 @@ def str_height(text: str) -> int:
 def line_iter(content: Any) -> Generator[str, None, None]:
     yield from str(content).splitlines()
 
+def get_widths(content: Iterable[Iterable[Any]]) -> list[int]:
+    """Returns list of column widths"""
+    widths: dict[int,int] = defaultdict(lambda:0)
+    for row in content:
+        for col, cell in enumerate(row):
+            if widths[col] < (cell_length:= Content(cell).width):
+                widths[col] = cell_length
+    return list(widths.values())
+
 class Content:
     def __init__(self, content: Any):
         self.text = str(content)
@@ -96,15 +105,6 @@ class Row:
             string += divider.join([next(cell_line) for cell_line in iters]) + "\n"
 
         return string
-
-def get_widths(content: Iterable[Iterable[Any]]) -> list[int]:
-    """Returns list of column widths"""
-    widths: dict[int,int] = defaultdict(lambda:0)
-    for row in content:
-        for col, cell in enumerate(row):
-            if widths[col] < (cell_length:= Content(cell).width):
-                widths[col] = cell_length
-    return list(widths.values())
 
 @dataclass
 class Table:
