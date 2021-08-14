@@ -152,12 +152,12 @@ class Table:
         self.data = data
         self.tab_fmt = tab_fmt
         self.row_heights = self.get_row_heights()
+        self.col_widths = self.get_col_widths()
 
     def get_row_heights(self) -> list[int]:
         return [max([Content(text).height for text in row]) for row in self.data]
 
-    @property
-    def col_widths(self) -> list[int]:
+    def get_col_widths(self) -> list[int]:
         """Returns list of column widths"""
         widths: dict[int,int] = defaultdict(lambda:0)
         for row in self.data:
