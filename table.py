@@ -6,7 +6,7 @@ from collections import defaultdict
 
 #typing
 from typing import Any
-from collections.abc import Generator, Iterable, Iterator
+from collections.abc import Generator, Iterable
 
 def h_pad(text: str, width: int, align: float, fill: str = " ") -> str:
     padding = width - len(text)
@@ -14,36 +14,14 @@ def h_pad(text: str, width: int, align: float, fill: str = " ") -> str:
     rpad = padding - lpad
     return f"{lpad*fill}{text}{rpad*fill}\n"
 
-def str_height(text: str) -> int:
-    return text.count("\n") + 1 if text else 0
-
 def line_iter(content: Any) -> Generator[str, None, None]:
     yield from str(content).splitlines()
 
-def get_widths(content: Iterable[Iterable[Any]]) -> list[int]:
-    """Returns list of column widths"""
-    widths: dict[int,int] = defaultdict(lambda:0)
-    for row in content:
-        for col, cell in enumerate(row):
-            if widths[col] < (cell_length:= Content(cell).width):
-                widths[col] = cell_length
-    return list(widths.values())
-
-def iter_join(iter1: Iterable[str], iter2: Iterable[str]):
+def iter_join(iter1: Iterable[str], iter2: Iterable[str]) -> str:
     string = ""
     for x,y in zip_longest(iter1, iter2, fillvalue=""):
         string += f"{x}{y}"
-    return string
-
-def char_return(tup: tuple[str,str], char1: str, char2: str, both: str, none: str):
-    if char1 in tup and char2 in tup:
-        return both
-    elif char1 in tup:
-        return char1
-    elif char2 in tup:
-        return char2
-    else:
-        return none
+    return string + "\n"
 
 class Content:
     def __init__(self, content: Any):
@@ -56,7 +34,7 @@ class Content:
 
     @property
     def height(self) -> int:
-        return str_height(self.text)
+        return self.text.count("\n") + 1 if self.text else 0
 
     @property
     def size(self) -> tuple[int,int]:
@@ -126,8 +104,9 @@ class Row:
         for _ in range(self.cells[0].height):
             chars = self.v_div.chars(num_divs)
             iterline = (next(line) for line in iters)
-            string += iter_join(iterline,chars) + "\n"
+            string += iter_join(iterline,chars)
         return string
+
 @dataclass
 class Joint:
     char: str
@@ -137,7 +116,17 @@ class Joint:
     def get_joints(self, height: int, width: int) -> list[list[str]]:
         hor_divs = self.hor.chars(height)
         ver_divs = self.ver.chars(width)
-        return [[char_return((x,y),self.hor.char,self.ver.char,self.char," ") for y in ver_divs] for x in hor_divs]
+        return [[self.char_return((x,y)," ") for y in ver_divs] for x in hor_divs]
+
+    def char_return(self, tup: tuple[str,str], none: str) -> str:
+        if self.hor.char in tup and self.ver.char in tup:
+            return self.char
+        elif self.hor.char in tup:
+            return self.hor.char
+        elif self.ver.char in tup:
+            return self.ver.char
+        else:
+            return none
 
 @dataclass
 class TableFormat:
@@ -145,7 +134,7 @@ class TableFormat:
     h_div: Divider = Divider("─")
     v_div: Divider = Divider("│")
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.joint = Joint(self.j_char,self.h_div,self.v_div)
 
     def div_lines(self, widths: list[int], tab_length: int,) -> list[str]:
@@ -155,7 +144,7 @@ class TableFormat:
         for j in joints:
             char = next(h_chars)
             lines = [char*w for w in widths]
-            divisions.append(iter_join(lines,j)+'\n')
+            divisions.append(iter_join(lines,j))
         return divisions
 
 @dataclass
@@ -169,7 +158,13 @@ class Table:
 
     @property
     def col_widths(self) -> list[int]:
-        return get_widths(self.data)
+        """Returns list of column widths"""
+        widths: dict[int,int] = defaultdict(lambda:0)
+        for row in self.data:
+            for col, cell in enumerate(row):
+                if widths[col] < (cell_length:= Content(cell).width):
+                    widths[col] = cell_length
+        return list(widths.values())
 
     @property
     def rows(self) -> list[Row]:
