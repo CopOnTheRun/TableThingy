@@ -35,6 +35,16 @@ def iter_join(iter1: Iterable[str], iter2: Iterable[str]):
         string += f"{x}{y}"
     return string
 
+def char_return(tup: tuple[str,str], char1: str, char2: str, both: str, none: str):
+    if char1 in tup and char2 in tup:
+        return both
+    elif char1 in tup:
+        return char1
+    elif char2 in tup:
+        return char2
+    else:
+        return none
+
 class Content:
     def __init__(self, content: Any):
         self.text = str(content)
@@ -99,10 +109,10 @@ class Divider:
     slices: slice = slice(None)
     default: str = " "
 
-    def chars(self, length: int) -> Iterator[str]:
+    def chars(self, length: int) -> list[str]:
         divs = [self.default for _ in range(length)]
         divs[self.slices] = self.char*len(divs[self.slices])
-        yield from divs
+        return divs
 
 @dataclass
 class Row:
@@ -118,22 +128,34 @@ class Row:
             iterline = (next(line) for line in iters)
             string += iter_join(iterline,chars) + "\n"
         return string
+@dataclass
+class Joint:
+    char: str
+    hor: Divider
+    ver: Divider
+
+    def get_joints(self, height: int, width: int) -> list[list[str]]:
+        hor_divs = self.hor.chars(height)
+        ver_divs = self.ver.chars(width)
+        return [[char_return((x,y),self.hor.char,self.ver.char,self.char," ") for y in ver_divs] for x in hor_divs]
 
 @dataclass
 class TableFormat:
+    j_char: str = "┼"
     h_div: Divider = Divider("─")
     v_div: Divider = Divider("│")
-    joint: Divider = Divider("┼")
+
+    def __post_init__(self):
+        self.joint = Joint(self.j_char,self.h_div,self.v_div)
 
     def div_lines(self, widths: list[int], tab_length: int,) -> list[str]:
         divisions: list[str]= []
-        h_chars = self.h_div.chars(tab_length)
-        joints = self.joint.chars(tab_length)
-        for _ in range(tab_length-1):
+        h_chars = iter(self.h_div.chars(tab_length-1))
+        joints = self.joint.get_joints(tab_length-1,len(widths)-1)
+        for j in joints:
             char = next(h_chars)
             lines = [char*w for w in widths]
-            joint = next(joints)
-            divisions.append(joint.join(lines)+'\n')
+            divisions.append(iter_join(lines,j)+'\n')
         return divisions
 
 @dataclass
