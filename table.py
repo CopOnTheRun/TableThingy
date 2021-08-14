@@ -26,14 +26,14 @@ def iter_join(iter1: Iterable[str], iter2: Iterable[str]) -> str:
 class Content:
     def __init__(self, content: Any):
         self.text = str(content)
+        self.width = self.get_width()
+        self.height = self.get_height()
 
-    @property
-    def width(self) -> int:
+    def get_width(self) -> int:
         widths = self.text.splitlines()
         return len(max(widths, key=len)) if widths else 0
 
-    @property
-    def height(self) -> int:
+    def get_height(self) -> int:
         return self.text.count("\n") + 1 if self.text else 0
 
     @property
@@ -147,17 +147,18 @@ class TableFormat:
             divisions.append(iter_join(lines,j))
         return divisions
 
-@dataclass
 class Table:
-    data: list[list[Any]]
-    tab_fmt: TableFormat = TableFormat()
+    def __init__(self, data: list[list[Any]], tab_fmt: TableFormat = TableFormat()):
+        self.data = data
+        self.tab_fmt = tab_fmt
+        self.row_heights = self.get_row_heights()
+        self.col_widths = self.get_col_widths()
+        self.rows = self.get_rows()
 
-    @property
-    def row_heights(self) -> list[int]:
+    def get_row_heights(self) -> list[int]:
         return [max([Content(text).height for text in row]) for row in self.data]
 
-    @property
-    def col_widths(self) -> list[int]:
+    def get_col_widths(self) -> list[int]:
         """Returns list of column widths"""
         widths: dict[int,int] = defaultdict(lambda:0)
         for row in self.data:
@@ -166,8 +167,7 @@ class Table:
                     widths[col] = cell_length
         return list(widths.values())
 
-    @property
-    def rows(self) -> list[Row]:
+    def get_rows(self) -> list[Row]:
         rows: list[Row] = []
         for height, row in zip_longest(self.row_heights, self.data):
             cell_list: list[Cell] = []
