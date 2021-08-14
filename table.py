@@ -26,14 +26,14 @@ def iter_join(iter1: Iterable[str], iter2: Iterable[str]) -> str:
 class Content:
     def __init__(self, content: Any):
         self.text = str(content)
+        self.width = self.get_width()
+        self.height = self.get_height()
 
-    @property
-    def width(self) -> int:
+    def get_width(self) -> int:
         widths = self.text.splitlines()
         return len(max(widths, key=len)) if widths else 0
 
-    @property
-    def height(self) -> int:
+    def get_height(self) -> int:
         return self.text.count("\n") + 1 if self.text else 0
 
     @property
