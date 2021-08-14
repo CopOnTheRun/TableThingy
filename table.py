@@ -1,27 +1,34 @@
-#standard functional
 from __future__ import annotations
 from dataclasses import dataclass
 from itertools import zip_longest
 from collections import defaultdict
-
-#typing
-from typing import Any
 from collections.abc import Generator, Iterable
+from typing import Any
 
 def h_pad(text: str, width: int, align: float, fill: str = " ") -> str:
+    """Aligns text to a proportion (align) of width.
+    For example, setting align to 0,.5, or 1 would left, center, or right align the text."""
     padding = width - len(text)
     lpad = round(align*padding)
     rpad = padding - lpad
     return f"{lpad*fill}{text}{rpad*fill}\n"
 
 def line_iter(content: Any) -> Generator[str, None, None]:
+    """Takes a string and returns a generator of string lines."""
     yield from str(content).splitlines()
 
 def iter_join(iter1: Iterable[str], iter2: Iterable[str]) -> str:
+    """Like join, except the join string is also an iterable.
+    If one iterable is longer than the other the remainder of the longer Iterable
+    will be appended to the string.
+
+    [In] : iter_join('abc',[1,2,3])
+    [Out]: 'a1b2c3def'"""
+
     string = ""
     for x,y in zip_longest(iter1, iter2, fillvalue=""):
         string += f"{x}{y}"
-    return string + "\n"
+    return string
 
 class Content:
     def __init__(self, content: Any):
@@ -104,7 +111,7 @@ class Row:
         for _ in range(self.cells[0].height):
             chars = self.v_div.chars(num_divs)
             iterline = (next(line) for line in iters)
-            string += iter_join(iterline,chars)
+            string += iter_join(iterline,chars) + "\n"
         return string
 
 @dataclass
@@ -144,7 +151,7 @@ class TableFormat:
         for j in joints:
             char = next(h_chars)
             lines = [char*w for w in widths]
-            divisions.append(iter_join(lines,j))
+            divisions.append(iter_join(lines,j)+"\n")
         return divisions
 
 class Table:
@@ -169,7 +176,7 @@ class Table:
 
     def get_rows(self) -> list[Row]:
         rows: list[Row] = []
-        for height, row in zip_longest(self.row_heights, self.data):
+        for height, row in zip(self.row_heights, self.data):
             cell_list: list[Cell] = []
             for width, datum in zip_longest(self.col_widths, row, fillvalue=""):
                 cell_list.append(Cell(Content(datum),height,width))
