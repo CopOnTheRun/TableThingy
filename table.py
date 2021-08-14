@@ -112,9 +112,11 @@ class Row:
     def __str__(self) -> str:
         string = ""
         iters = [line_iter(cell) for cell in self.cells]
+        num_divs = len(self.cells)-1
         for _ in range(self.cells[0].height):
-            chars = self.v_div.chars(1)
-            string += next(chars).join(next(cell_line) for cell_line in iters) + "\n"
+            chars = self.v_div.chars(num_divs)
+            iterline = (next(line) for line in iters)
+            string += iter_join(iterline,chars) + "\n"
         return string
 
 @dataclass
@@ -123,8 +125,8 @@ class TableFormat:
     v_div: Divider = Divider("│")
     joint: Divider = Divider("┼")
 
-    def div_lines(self, widths: list[int], tab_length: int,) -> str:
-        divisions = []
+    def div_lines(self, widths: list[int], tab_length: int,) -> list[str]:
+        divisions: list[str]= []
         h_chars = self.h_div.chars(tab_length)
         joints = self.joint.chars(tab_length)
         for _ in range(tab_length-1):
@@ -133,7 +135,6 @@ class TableFormat:
             joint = next(joints)
             divisions.append(joint.join(lines)+'\n')
         return divisions
-
 
 @dataclass
 class Table:
