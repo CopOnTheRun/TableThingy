@@ -153,6 +153,7 @@ class Table:
         self.tab_fmt = tab_fmt
         self.row_heights = self.get_row_heights()
         self.col_widths = self.get_col_widths()
+        self.rows = self.get_rows()
 
     def get_row_heights(self) -> list[int]:
         return [max([Content(text).height for text in row]) for row in self.data]
@@ -166,8 +167,7 @@ class Table:
                     widths[col] = cell_length
         return list(widths.values())
 
-    @property
-    def rows(self) -> list[Row]:
+    def get_rows(self) -> list[Row]:
         rows: list[Row] = []
         for height, row in zip_longest(self.row_heights, self.data):
             cell_list: list[Cell] = []
