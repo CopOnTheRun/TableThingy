@@ -1,7 +1,7 @@
 #standard functional
 from __future__ import annotations
 from dataclasses import dataclass
-from itertools import zip_longest,cycle
+from itertools import zip_longest
 from collections import defaultdict
 
 #typing
@@ -96,11 +96,11 @@ class Cell:
 @dataclass(frozen=True)
 class Divider:
     char: str
-    slices: slice = slice(0, None)
+    slices: slice = slice(None)
     default: str = " "
 
     def chars(self, length: int) -> Iterator[str]:
-        divs = [self.default for _ in range(length-1)]
+        divs = [self.default for _ in range(length)]
         divs[self.slices] = self.char*len(divs[self.slices])
         yield from divs
 
@@ -113,7 +113,7 @@ class Row:
         string = ""
         iters = [line_iter(cell) for cell in self.cells]
         for _ in range(self.cells[0].height):
-            chars = self.v_div.chars(2)
+            chars = self.v_div.chars(1)
             string += next(chars).join(next(cell_line) for cell_line in iters) + "\n"
         return string
 
@@ -125,10 +125,12 @@ class TableFormat:
 
     def div_lines(self, widths: list[int], tab_length: int,) -> str:
         divisions = []
-        lines = [self.h_div.char*w for w in widths]
+        h_chars = self.h_div.chars(tab_length)
         joints = self.joint.chars(tab_length)
         for _ in range(tab_length-1):
-            joint = next(cycle(joints))
+            char = next(h_chars)
+            lines = [char*w for w in widths]
+            joint = next(joints)
             divisions.append(joint.join(lines)+'\n')
         return divisions
 
