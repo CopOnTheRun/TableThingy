@@ -147,13 +147,13 @@ class TableFormat:
             divisions.append(iter_join(lines,j))
         return divisions
 
-@dataclass
 class Table:
-    data: list[list[Any]]
-    tab_fmt: TableFormat = TableFormat()
+    def __init__(self, data: list[list[Any]], tab_fmt: TableFormat = TableFormat()):
+        self.data = data
+        self.tab_fmt = tab_fmt
+        self.row_heights = self.get_row_heights()
 
-    @property
-    def row_heights(self) -> list[int]:
+    def get_row_heights(self) -> list[int]:
         return [max([Content(text).height for text in row]) for row in self.data]
 
     @property
