@@ -31,23 +31,29 @@ def iter_join(iter1: Iterable[str], iter2: Iterable[str]) -> str:
     return string
 
 class Content:
+    """Class containing the content to be displayed in a table."""
     def __init__(self, content: Any):
         self.text = str(content)
         self.width = self.get_width()
         self.height = self.get_height()
 
     def get_width(self) -> int:
+        """Calculates the line width(s) of a block of text, and returns the greatest width."""
         widths = self.text.splitlines()
         return len(max(widths, key=len)) if widths else 0
 
     def get_height(self) -> int:
+        """Returns the height of a block of text by counting the newlines in the block"""
         return self.text.count("\n") + 1 if self.text else 0
 
     @property
     def size(self) -> tuple[int,int]:
+        """Returns the height and width of a block of text as a tuple"""
         return (self.height, self.width)
 
     def __str__(self) -> str:
+        """Returns the string representation of self.text, padding the end of each line
+        with spaces so that each line is self.width characters long."""
         string = ""
         for line in self.text.splitlines():
             string += h_pad(line, self.width, align=0)
