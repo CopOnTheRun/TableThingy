@@ -61,11 +61,15 @@ class Content:
 
 @dataclass(frozen=True)
 class CellFormat:
+    """Determines the vertical and horizontal positioning of a cell's
+    content as well as the fill to be used to pad the content."""
     v_align: float = .5
     h_align: float = .5
     fill: str = " "
 
     def __post_init__(self) -> None:
+        """Checks to make sure the align values are between 0 and 1 inclusive.
+        Throws a ValueError in the case that they're not."""
         v_in = 0 <= self.v_align <= 1
         h_in = 0 <= self.h_align <= 1
         if not (v_in and h_in):
@@ -73,20 +77,23 @@ class CellFormat:
 
 @dataclass
 class Cell:
+    """Contains and formats Content to be used in a Table."""
     content: Content
     height: int
     width: int
     fmt: CellFormat = CellFormat()
 
     def print_range(self) -> range:
+        """Returns a range of lines in which self.content should be printed.
+        This range is determined by the v_align parameter in CellFormat."""
         start = round((self.height - self.content.height)*self.fmt.v_align)
         end = start+self.content.height
         return range(start,end)
 
     def __str__(self) -> str:
+        """Returns a string of size height*width containing the Cell instance's content."""
         string = ""
         content_iter = line_iter(self.content)
-
         for x in range(self.height):
             content = ""
             if x in self.print_range():
