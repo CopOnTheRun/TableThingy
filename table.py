@@ -161,7 +161,7 @@ class TableFormat:
         return divisions
 
 class Table:
-    def __init__(self, data: list[list[Any]], tab_fmt: TableFormat = TableFormat()):
+    def __init__(self, data: Iterable[Iterable[Any]], tab_fmt: TableFormat = TableFormat()):
         self.data = data
         self.tab_fmt = tab_fmt
         self.row_heights = self.get_row_heights()
