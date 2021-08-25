@@ -22,7 +22,7 @@ def iter_join(iter1: Iterable[str], iter2: Iterable[str]) -> str:
     If one iterable is longer than the other the remainder of the longer Iterable
     will be appended to the string.
 
-    [In] : iter_join('abc',[1,2,3])
+    [In] : iter_join('abcdef',[1,2,3])
     [Out]: 'a1b2c3def'"""
 
     string = ""
