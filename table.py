@@ -197,21 +197,25 @@ class Table:
     def __init__(self, data: Iterable[Iterable[Any]], tab_fmt: TableFormat = TableFormat()):
         """Throw in an Iterable of Iterables and spit out a pretty printed Table"""
         self.data = data
+        self.contents = self.get_content()
         self.tab_fmt = tab_fmt
         self.row_heights = self.get_row_heights()
         self.col_widths = self.get_col_widths()
         self.rows = self.get_rows()
 
+    def get_content(self) -> list[list[Content]]:
+        return [[Content(data) for data in row] for row in self.data]
+
     def get_row_heights(self) -> list[int]:
         """Determines the heights for each row"""
-        return [max([Content(text).height for text in row]) for row in self.data]
+        return [max([text.height for text in row]) for row in self.contents]
 
     def get_col_widths(self) -> list[int]:
         """Returns list of column widths"""
         widths: dict[int,int] = defaultdict(lambda:0)
-        for row in self.data:
-            for col, cell in enumerate(row):
-                if widths[col] < (cell_length:= Content(cell).width):
+        for row in self.contents:
+            for col, text in enumerate(row):
+                if widths[col] < (cell_length := text.width):
                     widths[col] = cell_length
         return list(widths.values())
 
@@ -220,8 +224,8 @@ class Table:
         rows: list[Row] = []
         for height, row in zip(self.row_heights, self.data):
             cell_list: list[Cell] = []
-            for width, datum in zip_longest(self.col_widths, row, fillvalue=""):
-                cell_list.append(Cell(Content(datum),height,width))
+            for width, content in zip_longest(self.col_widths, row, fillvalue=Content("")):
+                cell_list.append(Cell(Content(content), height, width))
             rows.append(Row(cell_list, self.tab_fmt.v_div))
         return rows
 
