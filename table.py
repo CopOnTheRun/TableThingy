@@ -215,6 +215,13 @@ class Table:
                     widths[col] = cell_length
         return list(widths.values())
 
+    def row(self, row_index: int) -> list[Cell]:
+        """A list of cells from the index specified."""
+        height = self.row_heights[row_index]
+        widths_data = zip(self.col_widths, self.contents[row_index])
+        cell_list = [Cell(content, height, width) for width, content in widths_data]
+        return cell_list
+
     def get_rows(self) -> list[Row]:
         """Returns all the rows in the table"""
         rows: list[Row] = []
