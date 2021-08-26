@@ -228,9 +228,8 @@ class Table:
     def __str__(self) -> str:
         """Pretty print the contents of the Table"""
         string = ""
-        widths = self.col_widths
-        dividers = self.tab_fmt.div_lines(widths,len(self.rows))
-        for row, divider in zip_longest(self.rows,dividers,fillvalue=""):
-            string+= f"{row}{divider}"
+        dividers = self.tab_fmt.div_lines(self.col_widths, len(self.rows))
+        for row, divider in zip_longest(self.rows, dividers, fillvalue=""):
+            string += f"{row}{divider}"
         return string.removesuffix("\n")
 
