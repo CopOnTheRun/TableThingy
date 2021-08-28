@@ -1,4 +1,5 @@
 from __future__ import annotations
+from math import floor
 from dataclasses import dataclass
 from itertools import zip_longest
 from collections import defaultdict
@@ -9,7 +10,7 @@ def h_pad(text: str, width: int, align: float, fill: str = " ") -> str:
     """Aligns text to a proportion (align) of width.
     For example, setting align to 0,.5, or 1 would left, center, or right align the text."""
     padding = width - len(text)
-    lpad = round(align*padding)
+    lpad = floor(align*padding)
     rpad = padding - lpad
     return f"{lpad*fill}{text}{rpad*fill}\n"
 
@@ -83,10 +84,13 @@ class Cell:
     width: int
     fmt: CellFormat = CellFormat()
 
+    def __post_init__(self):
+        self.print_lines = self.print_range()
+
     def print_range(self) -> range:
         """Returns a range of lines in which self.content should be printed.
         This range is determined by the v_align parameter in CellFormat."""
-        start = round((self.height - self.content.height)*self.fmt.v_align)
+        start = floor((self.height - self.content.height)*self.fmt.v_align)
         end = start+self.content.height
         return range(start,end)
 
@@ -96,7 +100,7 @@ class Cell:
         content_iter = line_iter(self.content)
         for x in range(self.height):
             content = ""
-            if x in self.print_range():
+            if x in self.print_lines:
                 content = next(content_iter)
             string += h_pad(content, self.width, self.fmt.h_align, self.fmt.fill)
         return string
@@ -134,8 +138,8 @@ class Row:
         string = ""
         iters = [line_iter(cell) for cell in self.cells]
         num_divs = len(self.cells)-1
+        chars = self.v_div.chars(num_divs)
         for _ in range(self.cells[0].height):
-            chars = self.v_div.chars(num_divs)
             iterline = (next(line) for line in iters)
             string += iter_join(iterline,chars) + "\n"
         return string
@@ -197,8 +201,8 @@ class Table:
     def __init__(self, data: Iterable[Iterable[Any]], tab_fmt: TableFormat = TableFormat()):
         """Throw in an Iterable of Iterables and spit out a pretty printed Table"""
         self.data = data
-        self.contents = self.get_content()
         self.tab_fmt = tab_fmt
+        self.contents = self.get_content()
         self.row_heights = self.get_row_heights()
         self.col_widths = self.get_col_widths()
         self.rows = self.get_rows()
@@ -219,27 +223,27 @@ class Table:
                     widths[col] = cell_length
         return list(widths.values())
 
-    def row(self, row_index: int) -> list[Cell]:
+    def _cell_list(self, row_index: int) -> list[Cell]:
         """A list of cells from the index specified."""
         height = self.row_heights[row_index]
-        widths_data = zip(self.col_widths, self.contents[row_index])
+        widths_data = zip_longest(self.col_widths, self.contents[row_index], fillvalue=Content(""))
         cell_list = [Cell(content, height, width) for width, content in widths_data]
         return cell_list
 
     def get_rows(self) -> list[Row]:
         """Returns all the rows in the table"""
         rows: list[Row] = []
-        for height, row in zip(self.row_heights, self.data):
+        for height, row in zip(self.row_heights, self.contents):
             cell_list: list[Cell] = []
             for width, content in zip_longest(self.col_widths, row, fillvalue=Content("")):
-                cell_list.append(Cell(Content(content), height, width))
+                cell_list.append(Cell(content, height, width))
             rows.append(Row(cell_list, self.tab_fmt.v_div))
         return rows
 
     def __str__(self) -> str:
         """Pretty print the contents of the Table"""
         string = ""
-        dividers = self.tab_fmt.div_lines(self.col_widths, len(self.rows))
+        dividers = self.tab_fmt.div_lines(self.col_widths, len(self.contents))
         for row, divider in zip_longest(self.rows, dividers, fillvalue=""):
             string += f"{row}{divider}"
         return string.removesuffix("\n")
