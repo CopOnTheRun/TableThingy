@@ -172,7 +172,7 @@ class Joint:
             return none
 
 @dataclass
-class TableFormat:
+class TableDecoration:
     """Format information which determines how the table will look"""
     j_char: str = "┼"
     h_div: Divider = Divider("─")
@@ -181,7 +181,6 @@ class TableFormat:
     def __post_init__(self) -> None:
         """the joint needs to be created based on the Dividers passed in, and this is the way
         you do that with a dataclass. Might just turn this into a regular class."""
-
         self.joint = Joint(self.j_char,self.h_div,self.v_div)
 
     def div_lines(self, widths: list[int], tab_length: int,) -> list[str]:
@@ -198,7 +197,7 @@ class TableFormat:
         return divisions
 
 class Table:
-    def __init__(self, data: Iterable[Iterable[Any]], tab_fmt: TableFormat = TableFormat()):
+    def __init__(self, data: Iterable[Iterable[Any]], tab_fmt: TableDecoration = TableDecoration()):
         """Throw in an Iterable of Iterables and spit out a pretty printed Table"""
         self.data = data
         self.tab_fmt = tab_fmt
