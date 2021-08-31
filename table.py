@@ -105,6 +105,25 @@ class Cell:
             string += h_pad(content, self.width, self.fmt.h_align, self.fmt.fill)
         return string
 
+@dataclass
+class Row:
+    """A list of Cells coupled with a Table's vertical Divider. This class is basically just
+    here to make it slightly easier to pretty print in Table.
+    """
+    cells: list[Cell]
+    v_div: Divider
+
+    def __str__(self) -> str:
+        """Joins the characters from the Divider and the strings from the Cell list."""
+        string = ""
+        iters = [line_iter(cell) for cell in self.cells]
+        num_divs = len(self.cells)-1
+        chars = self.v_div.chars(num_divs)
+        for _ in range(self.cells[0].height):
+            iterline = (next(line) for line in iters)
+            string += iter_join(iterline,chars) + "\n"
+        return string
+
 @dataclass(frozen=True)
 class Divider:
     """Class to facilitate cell division.
@@ -125,24 +144,6 @@ class Divider:
         divs[self.slices] = self.char*len(divs[self.slices])
         return divs
 
-@dataclass
-class Row:
-    """A list of Cells coupled with a Table's vertical Divider. This class is basically just
-    here to make it slightly easier to pretty print in Table.
-    """
-    cells: list[Cell]
-    v_div: Divider
-
-    def __str__(self) -> str:
-        """Joins the characters from the Divider and the strings from the Cell list."""
-        string = ""
-        iters = [line_iter(cell) for cell in self.cells]
-        num_divs = len(self.cells)-1
-        chars = self.v_div.chars(num_divs)
-        for _ in range(self.cells[0].height):
-            iterline = (next(line) for line in iters)
-            string += iter_join(iterline,chars) + "\n"
-        return string
 
 @dataclass
 class Joint:
