@@ -191,6 +191,19 @@ class TableDecoration:
         else:
             return none
 
+    def _lines(self, char: str, widths: list[int]) -> list[str]:
+        return [char*width for width in widths]
+
+    def border(self, joints: JointChars, lines: list[str]):
+        border = joints.left
+        num_joints = len(lines) - 1
+        v_divs = self.v_div.chars(num_joints)
+        h_char = self.h_div.char
+        middle_joints = [self.char_return(joints.mid, (j,h_char), " ") for j in v_divs]
+        border += iter_join(lines, middle_joints)
+        border += joints.right
+        return border
+
     def joints(self, height: int, width: int) -> list[list[str]]:
         """Returns a height*width list of list of joints and Divider chars."""
         hor_divs = self.h_div.chars(height)
