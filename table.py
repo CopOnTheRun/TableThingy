@@ -144,6 +144,12 @@ class Divider:
         divs[self.slices] = self.char*len(divs[self.slices])
         return divs
 
+    @classmethod
+    def horizontal(cls): return cls("─", slice(None), " ")
+
+    @classmethod
+    def vertical(cls): return cls("│", slice(None), " ")
+
 class JointChars(NamedTuple):
     left: str
     mid: str
@@ -170,8 +176,8 @@ class TableDecoration:
     top_bord: JointChars = JointChars.top()
     mid_bord: JointChars = JointChars.center()
     bot_bord: JointChars = JointChars.bottom()
-    h_div: Divider = Divider("─")
-    v_div: Divider = Divider("│")
+    h_div: Divider = Divider.horizontal()
+    v_div: Divider = Divider.vertical()
 
     def char_return(self, tup: tuple[str,str], none: str) -> str:
         """Looks for whether both dividers are in the tuple and returns a joint if that's the
