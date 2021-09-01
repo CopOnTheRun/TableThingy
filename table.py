@@ -179,11 +179,11 @@ class TableDecoration:
     h_div: Divider = Divider.horizontal()
     v_div: Divider = Divider.vertical()
 
-    def char_return(self, tup: tuple[str,str], none: str) -> str:
+    def char_return(self, char:  str, tup: tuple[str, str], none: str) -> str:
         """Looks for whether both dividers are in the tuple and returns a joint if that's the
         case. Otherwise the returned character will be the Divider char, or none."""
         if self.h_div.char in tup and self.v_div.char in tup:
-            return self.mid_bord.mid
+            return char
         elif self.h_div.char in tup:
             return self.h_div.char
         elif self.v_div.char in tup:
@@ -195,7 +195,8 @@ class TableDecoration:
         """Returns a height*width list of list of joints and Divider chars."""
         hor_divs = self.h_div.chars(height)
         ver_divs = self.v_div.chars(width)
-        return [[self.char_return((x,y), " ") for y in ver_divs] for x in hor_divs]
+        char = self.mid_bord.mid
+        return [[self.char_return(char, (x,y), " ") for y in ver_divs] for x in hor_divs]
 
     def div_lines(self, widths: list[int], tab_length: int,) -> list[str]:
         """Creates the horizontal dividers for a table. Note that currently the
