@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from itertools import zip_longest
 from collections import defaultdict
 from collections.abc import Generator, Iterable
-from typing import Any
+from typing import Any, NamedTuple
 
 def h_pad(text: str, width: int, align: float, fill: str = " ") -> str:
     """Aligns text to a proportion (align) of width.
@@ -144,45 +144,52 @@ class Divider:
         divs[self.slices] = self.char*len(divs[self.slices])
         return divs
 
+class JointChars(NamedTuple):
+    left: str
+    mid: str
+    right: str
 
-@dataclass
-class Joint:
-    """
-    When two Dividers meet, they form a Joint.
-    """
-    char: str
-    hor: Divider
-    ver: Divider
+    @classmethod
+    def none(cls): return cls("","","")
 
-    def get_joints(self, height: int, width: int) -> list[list[str]]:
-        """Returns a height*width list of list of joints and Divider chars."""
-        hor_divs = self.hor.chars(height)
-        ver_divs = self.ver.chars(width)
-        return [[self.char_return((x,y)," ") for y in ver_divs] for x in hor_divs]
+    @classmethod
+    def top(cls): return cls(*"┌┬┐")
 
-    def char_return(self, tup: tuple[str,str], none: str) -> str:
-        """Looks for whether both dividers are in the tuple and returns a joint if that's the
-        case. Otherwise the returned character will be the Divider char, or none."""
-        if self.hor.char in tup and self.ver.char in tup:
-            return self.char
-        elif self.hor.char in tup:
-            return self.hor.char
-        elif self.ver.char in tup:
-            return self.ver.char
-        else:
-            return none
+    @classmethod
+    def center(cls): return cls(*"├┼┤")
+
+    @classmethod
+    def bottom(cls): return cls(*"└┴┘")
+
+    def no_border(self):
+        return self.__class__("",self.mid,"")
 
 @dataclass
 class TableDecoration:
     """Format information which determines how the table will look"""
-    j_char: str = "┼"
+    top_bord: JointChars = JointChars.top()
+    mid_bord: JointChars = JointChars.center()
+    bot_bord: JointChars = JointChars.bottom()
     h_div: Divider = Divider("─")
     v_div: Divider = Divider("│")
 
-    def __post_init__(self) -> None:
-        """the joint needs to be created based on the Dividers passed in, and this is the way
-        you do that with a dataclass. Might just turn this into a regular class."""
-        self.joint = Joint(self.j_char,self.h_div,self.v_div)
+    def char_return(self, tup: tuple[str,str], none: str) -> str:
+        """Looks for whether both dividers are in the tuple and returns a joint if that's the
+        case. Otherwise the returned character will be the Divider char, or none."""
+        if self.h_div.char in tup and self.v_div.char in tup:
+            return self.mid_bord.mid
+        elif self.h_div.char in tup:
+            return self.h_div.char
+        elif self.v_div.char in tup:
+            return self.v_div.char
+        else:
+            return none
+
+    def joints(self, height: int, width: int) -> list[list[str]]:
+        """Returns a height*width list of list of joints and Divider chars."""
+        hor_divs = self.h_div.chars(height)
+        ver_divs = self.v_div.chars(width)
+        return [[self.char_return((x,y), " ") for y in ver_divs] for x in hor_divs]
 
     def div_lines(self, widths: list[int], tab_length: int,) -> list[str]:
         """Creates the horizontal dividers for a table. Note that currently the
@@ -190,7 +197,7 @@ class TableDecoration:
 
         divisions: list[str]= []
         h_chars = iter(self.h_div.chars(tab_length-1))
-        joints = self.joint.get_joints(tab_length-1,len(widths)-1)
+        joints = self.joints(tab_length-1,len(widths)-1)
         for j in joints:
             char = next(h_chars)
             lines = [char*w for w in widths]
