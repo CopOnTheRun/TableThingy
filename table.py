@@ -194,14 +194,14 @@ class TableDecoration:
     def _lines(self, char: str, widths: list[int]) -> list[str]:
         return [char*width for width in widths]
 
-    def border(self, joints: JointChars, lines: list[str]):
+    def border(self, joints: JointChars, lines: list[str]) -> str:
         border = joints.left
         num_joints = len(lines) - 1
         v_divs = self.v_div.chars(num_joints)
         h_char = self.h_div.char
-        middle_joints = [self.char_return(joints.mid, (j,h_char), " ") for j in v_divs]
+        middle_joints = [self.char_return(joints.mid, (j, h_char), " ") for j in v_divs]
         border += iter_join(lines, middle_joints)
-        border += joints.right
+        border += joints.right + "\n"
         return border
 
     def joints(self, height: int, width: int) -> list[list[str]]:
@@ -214,14 +214,18 @@ class TableDecoration:
     def div_lines(self, widths: list[int], tab_length: int,) -> list[str]:
         """Creates the horizontal dividers for a table. Note that currently the
         vertical dividers are part of the Row class."""
+        lines = self._lines(self.h_div.char,widths)
+        top_border = self.border(self.top_bord,lines)
+        bot_border = self.border(self.bot_bord,lines)
 
-        divisions: list[str]= []
+        divisions: list[str]= [top_border]
         h_chars = iter(self.h_div.chars(tab_length-1))
         joints = self.joints(tab_length-1,len(widths)-1)
         for j in joints:
             char = next(h_chars)
             lines = [char*w for w in widths]
             divisions.append(iter_join(lines,j)+"\n")
+        divisions.append(bot_border)
         return divisions
 
 class Table:
@@ -272,6 +276,6 @@ class Table:
         string = ""
         dividers = self.tab_fmt.div_lines(self.col_widths, len(self.contents))
         for row, divider in zip_longest(self.rows, dividers, fillvalue=""):
-            string += f"{row}{divider}"
+            string += f"{divider}{row}"
         return string.removesuffix("\n")
 
