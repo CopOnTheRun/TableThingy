@@ -222,15 +222,19 @@ class TableDecoration:
         """Creates the horizontal dividers for a table. Note that currently the
         vertical dividers are part of the Row class."""
         lines = self._lines(self.h_div.char,widths)
-        top_border = self.border(self.top_bord,lines)
-        bot_border = self.border(self.bot_bord,lines)
+        top_border = self.border(self.top_bord,lines) if self.top_bord else ""
+        bot_border = self.border(self.bot_bord,lines) if self.bot_bord else ""
+
 
         divisions: list[str]= [top_border]
         h_chars = self.h_div.chars(tab_length-1)
         joints = self.joints(tab_length-1,len(widths)-1)
         for j,char in zip(joints,h_chars):
             lines = [char*w for w in widths]
-            divisions.append(iter_join(lines,j)+"\n")
+            left_bord = self.mid_bord.left if char == self.h_div.char else self.v_div.char
+            right_bord = self.mid_bord.right if char == self.h_div.char else self.v_div.char
+            row = iter_join(lines,j)
+            divisions.append(f"{left_bord}{row}{right_bord}\n")
         divisions.append(bot_border)
         return divisions
 
