@@ -112,16 +112,20 @@ class Row:
     """
     cells: list[Cell]
     v_div: Divider
+    joint: JointChars
 
     def __str__(self) -> str:
         """Joins the characters from the Divider and the strings from the Cell list."""
         string = ""
+        left_border = self.v_div.char if self.joint.left else ""
+        right_border = self.v_div.char if self.joint.right else ""
         iters = [line_iter(cell) for cell in self.cells]
         num_divs = len(self.cells)-1
         chars = self.v_div.chars(num_divs)
         for _ in range(self.cells[0].height):
             iterline = (next(line) for line in iters)
-            string += iter_join(iterline,chars) + "\n"
+            row_line = iter_join(iterline, chars)
+            string += f"{left_border}{row_line}{right_border}\n"
         return string
 
 @dataclass(frozen=True)
@@ -155,6 +159,9 @@ class JointChars(NamedTuple):
     mid: str
     right: str
 
+    def __bool__(self) -> bool:
+        return self != self.none()
+
     @classmethod
     def none(cls): return cls("","","")
 
@@ -168,7 +175,7 @@ class JointChars(NamedTuple):
     def bottom(cls): return cls(*"└┴┘")
 
     def no_border(self):
-        return self.__class__("",self.mid,"")
+        return self.__class__("", self.mid, "")
 
 @dataclass
 class TableDecoration:
@@ -267,7 +274,7 @@ class Table:
             cell_list: list[Cell] = []
             for width, content in zip_longest(self.col_widths, row, fillvalue=Content("")):
                 cell_list.append(Cell(content, height, width))
-            rows.append(Row(cell_list, self.tab_fmt.v_div))
+            rows.append(Row(cell_list, self.tab_fmt.v_div, self.tab_fmt.mid_bord))
         return rows
 
     def __str__(self) -> str:
