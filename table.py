@@ -219,10 +219,9 @@ class TableDecoration:
         bot_border = self.border(self.bot_bord,lines)
 
         divisions: list[str]= [top_border]
-        h_chars = iter(self.h_div.chars(tab_length-1))
+        h_chars = self.h_div.chars(tab_length-1)
         joints = self.joints(tab_length-1,len(widths)-1)
-        for j in joints:
-            char = next(h_chars)
+        for j,char in zip(joints,h_chars):
             lines = [char*w for w in widths]
             divisions.append(iter_join(lines,j)+"\n")
         divisions.append(bot_border)
